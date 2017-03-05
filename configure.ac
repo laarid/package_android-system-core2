@@ -162,7 +162,7 @@ AC_SUBST([ZLIB_CFLAGS])
 AC_SUBST([ZLIB_LIBS])
 
 BIONIC_API_VERSION=0.0
-BIONIC_REQUIRED_VERSION=0.1.4
+BIONIC_REQUIRED_VERSION=0.1.6
 AC_SUBST([BIONIC_API_VERSION])
 AC_SUBST([BIONIC_REQUIRED_VERSION])
 PKG_CHECK_MODULES([BIONIC], [android-bionic-$BIONIC_API_VERSION >= $BIONIC_REQUIRED_VERSION])
@@ -334,10 +334,24 @@ AC_ARG_ENABLE([schedboost],
   [AS_HELP_STRING([--enable-schedboost], [enable use of /dev/stune/* @<:@default=no@:>@])])
 AM_CONDITIONAL([ENABLE_SCHEDBOOST], [test x$enable_schedboost = xyes])
 
+AS_IF([test "x${cpu_arm}" = xyes],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#ifndef __ARM_FEATURE_DSP
+#error "DSP not supported"
+#endif
+], [])],
+    [enable_arm_dsp=yes],
+    [enable_arm_dsp=no])])
+AM_CONDITIONAL([CPU_ARM_HAVE_DSP], [test "x${enable_arm_dsp}" = xyes])
+
 AC_ARG_ENABLE([arm-neon],
   [AS_HELP_STRING([--enable-arm-neon], [Enable ARM NEON optimizations])],
-  [AS_IF([test "x${enable_arm_neon}" = xyes],
-    [AS_IF([test "x${cpu_arm}" != xyes], [enable_arm_neon=no])])])
+  [AS_IF([test "x${enable_arm_neon}" != xno],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#ifndef __ARM_NEON
+#error "NEON not supported"
+#endif
+], [])],
+      [enable_arm_neon=yes],
+      [enable_arm_neon=no])])])
 AM_CONDITIONAL([CPU_ARM_HAVE_NEON], [test "x${enable_arm_neon}" = xyes])
 
 # GTest
@@ -382,6 +396,7 @@ AS_IF([test "x${with_stage}" = x1], [AC_CONFIG_FILES([
   liblog/android-log-$LAARID_API_VERSION.pc
   libmincrypt/android-mincrypt-$LAARID_API_VERSION.pc
   libnetutils/android-netutils-$LAARID_API_VERSION.pc
+  libpackagelistparser/android-packagelistparser-$LAARID_API_VERSION.pc
   libsparse/android-sparse-$LAARID_API_VERSION.pc
   libsuspend/android-suspend-$LAARID_API_VERSION.pc
   libsync/android-sync-$LAARID_API_VERSION.pc
@@ -392,6 +407,7 @@ AS_IF([test "x${with_stage}" = x1], [AC_CONFIG_FILES([
   [test "x${with_stage}" = x2], [AC_CONFIG_FILES([
   libbacktrace/android-backtrace-$LAARID_API_VERSION.pc
   libnativebridge/android-nativebridge-$LAARID_API_VERSION.pc
+  libnativeloader/android-nativeloader-$LAARID_API_VERSION.pc
   libpixelflinger/android-pixelflinger-$LAARID_API_VERSION.pc
   libprocessgroup/android-processgroup-$LAARID_API_VERSION.pc
   libutils/android-utils-$LAARID_API_VERSION.pc
